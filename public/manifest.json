@@ -1,0 +1,27 @@
+{
+  "name": "Reserva del Quincho - FIUNA",
+  "short_name": "Quincho FIUNA",
+  "description": "Sistema de reservas del quincho de la Facultad de Ingeniería UNA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#c8102e",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/1200x1200.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/1200x1200.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ]
+}

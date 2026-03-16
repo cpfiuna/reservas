@@ -1,0 +1,43 @@
+name: Deploy Supabase Edge Functions
+
+on:
+  push:
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        run: |
+          curl -fsSL https://deno.land/x/install/install.sh | sh
+          echo "$HOME/.deno/bin" >> $GITHUB_PATH
+
+      - name: Install Supabase CLI
+        run: |
+          rm -rf supabase
+          curl -fsSL https://github.com/supabase/cli/releases/download/v1.200.3/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+          supabase --version
+
+      - name: Deploy functions
+        env:
+          # These secrets must be configured in GitHub repository settings
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase login --token $SUPABASE_ACCESS_TOKEN
+          # Deploy each function folder under supabase/functions
+          for fn in supabase/functions/*; do
+            if [ -d "$fn" ]; then
+              name=$(basename "$fn")
+              echo "Deploying function: $name"
+              supabase functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF"
+            fi
+          done

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Quincho FIUNA - Solicitud no aprobada</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Montserrat', Arial, sans-serif; color: #333333;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8f9fa">
+  <tr>
+    <td align="center" style="padding: 40px 20px;">
+      <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <!-- Header -->
+        <tr>
+          <td style="background-color: #E30613; padding: 30px 40px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Quincho FIUNA</h1>
+          </td>
+        </tr>
+        
+        <!-- Main Content -->
+        <tr>
+          <td style="padding: 40px;">
+            <h2 style="margin: 0 0 20px 0; color: #2a2a2a; font-size: 24px; font-weight: 600;">Solicitud de reserva no aprobada</h2>
+            
+            <p style="margin: 0 0 30px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+              Lamentamos informarte que tu solicitud de reserva del Quincho FIUNA no ha sido aprobada en esta ocasión.
+            </p>
+            
+            <div style="margin: 0 0 30px 0; padding: 20px; background-color: #f0f0f0; border-radius: 6px;">
+              <p style="margin: 0 0 15px 0; color: #2a2a2a; font-size: 15px; line-height: 1.6;">
+                <strong>Detalles de la solicitud:</strong>
+              </p>
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Fecha:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Date}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Horario:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.StartTime}} - {{.EndTime}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Nombre:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Name}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Motivo:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Reason}}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div style="margin: 0 0 30px 0; padding: 20px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 6px;">
+              <p style="margin: 0 0 10px 0; color: #856404; font-size: 15px; font-weight: 600;">
+                Motivo del rechazo:
+              </p>
+              <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                {{.RejectionReason}}
+              </p>
+            </div>
+            
+            <p style="margin: 0; color: #555555; font-size: 16px; line-height: 1.6;">
+              Puedes realizar una nueva solicitud para otra fecha u horario. Si tienes alguna pregunta sobre este rechazo, no dudes en contactarnos.
+            </p>
+          </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+          <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 10px 0; color: #999999; font-size: 13px;">
+              Sistema de Reservas - Quincho FIUNA
+            </p>
+            <p style="margin: 0; color: #999999; font-size: 13px;">
+              Facultad de Ingeniería - Universidad Nacional de Asunción
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

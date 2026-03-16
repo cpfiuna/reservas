@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Quincho FIUNA - Confirma tu reserva</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Montserrat', Arial, sans-serif; color: #333333;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8f9fa">
+  <tr>
+    <td align="center" style="padding: 40px 20px;">
+      <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <!-- Header -->
+        <tr>
+          <td style="background-color: #E30613; padding: 30px 40px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Quincho FIUNA</h1>
+          </td>
+        </tr>
+        
+        <!-- Main Content -->
+        <tr>
+          <td style="padding: 40px;">
+            <h2 style="margin: 0 0 20px 0; color: #2a2a2a; font-size: 24px; font-weight: 600;">Confirma tu solicitud de reserva</h2>
+            
+            <p style="margin: 0 0 20px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+              Has solicitado una reserva del Quincho FIUNA. Para que tu solicitud sea enviada a revisión y aprobación, necesitamos que confirmes tu correo electrónico.
+            </p>
+            
+            <div style="margin: 0 0 30px 0; padding: 20px; background-color: #f0f0f0; border-radius: 6px; border-left: 4px solid #E30613;">
+              <p style="margin: 0 0 10px 0; color: #2a2a2a; font-size: 15px; line-height: 1.6;">
+                <strong>Detalles de tu reserva:</strong>
+              </p>
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Fecha:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Date}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Horario:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.StartTime}} - {{.EndTime}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Nombre:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Name}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Motivo:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Reason}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 0; color: #555555; font-size: 14px;">Cantidad de personas:</td>
+                  <td style="padding: 5px 0; color: #2a2a2a; font-size: 14px; font-weight: 500; text-align: right;">{{.Personas}}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <p style="margin: 0 0 30px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+              Haz clic en el botón de abajo para confirmar tu solicitud:
+            </p>
+            
+            <!-- Button -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="padding: 0 0 30px 0;">
+                  <a href="{{.ConfirmationURL}}" style="display: inline-block; background-color: #E30613; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                    Confirmar solicitud de reserva
+                  </a>
+                </td>
+              </tr>
+            </table>
+            
+            <p style="margin: 0 0 15px 0; color: #777777; font-size: 14px; line-height: 1.6;">
+              O copia y pega este enlace en tu navegador:
+            </p>
+            
+            <p style="margin: 0 0 30px 0; padding: 15px; background-color: #f8f9fa; border-radius: 4px; word-break: break-all;">
+              <a href="{{.ConfirmationURL}}" style="color: #E30613; text-decoration: none; font-size: 14px;">{{.ConfirmationURL}}</a>
+            </p>
+            
+            <div style="margin: 0; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+              <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                <strong>⚠️ Importante:</strong> Una vez confirmada, tu solicitud será enviada para revisión. Recibirás un correo cuando sea aprobada o rechazada. Este enlace expirará en 24 horas.
+              </p>
+            </div>
+          </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+          <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0 0 10px 0; color: #999999; font-size: 13px;">
+              Sistema de Reservas - Quincho FIUNA
+            </p>
+            <p style="margin: 0; color: #999999; font-size: 13px;">
+              Facultad de Ingeniería - Universidad Nacional de Asunción
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

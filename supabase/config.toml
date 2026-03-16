@@ -1,0 +1,4 @@
+project_id = "uhthypiomvxwnayopagt"
+
+[functions.cleanup-unconfirmed-reservations]
+# cron = "0 0 * * *" # runs daily at 00:00 UTC (configure via Supabase Dashboard)
