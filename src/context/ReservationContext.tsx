@@ -5,13 +5,16 @@ import { toast } from "sonner";
 import { Reservation, ReservationContextType } from '@/types/reservation';
 import { useReservationsData } from '@/hooks/useReservationsData';
 import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
+import { useVenue } from '@/context/VenueContext';
 
 const ReservationContext = createContext<ReservationContextType | undefined>(undefined);
 
 export const ReservationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Call all useState hooks first
   const [mounted, setMounted] = useState(true);
-  
+
+  const { venueId } = useVenue();
+
   const { 
     reservations, 
     blockedDates, 
@@ -20,7 +23,7 @@ export const ReservationProvider: React.FC<{ children: React.ReactNode }> = ({ c
     deleteReservation: deleteReservationFromDb,
     updateReservation: updateReservationInDb,
     dataInitialized
-  } = useReservationsData();
+  } = useReservationsData(venueId);
 
   const { 
     getReservationsByDate, 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
@@ -25,7 +25,7 @@ interface BlockedDatesListProps {
 
 const BlockedDatesList: React.FC<BlockedDatesListProps> = ({ blockedDates, onDelete }) => {
   const formatBlockDateInfo = (block: BlockedDate) => {
-    const dateStr = format(block.fecha, 'dd/MM/yyyy');
+    const dateStr = format(parseISO(block.fecha), 'dd/MM/yyyy');
     let blockInfo = dateStr;
     
     // Include time information if available

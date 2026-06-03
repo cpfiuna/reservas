@@ -201,7 +201,7 @@ const ReservationsList: React.FC<ReservationsListProps> = ({
                         <p><span className="font-medium">Responsable:</span> {reservation.responsable}</p>
                         {useMotivoAsSecondary ? (
                           <p>
-                            <span className="font-medium">Motivo:</span>{' '}
+                            <span className="font-medium">Motivo de cancelación:</span>{' '}
                             {(() => {
                               const raw = reservation.admin_notes ?? reservation.motivo ?? '';
                               const note = typeof raw === 'string' ? raw.replace(/^Motivo:\s*/i, '').trim() : '';

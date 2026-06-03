@@ -10,9 +10,7 @@ import {
 } from './utils';
 
 export const useAuthState = () => {
-  const [user, setUser] = useState<User | null>(() => {
-    return getUserFromLocalStorage();
-  });
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialAuth, setIsInitialAuth] = useState(() => {
     // Get the initial auth state from localStorage or default to true
@@ -21,6 +19,7 @@ export const useAuthState = () => {
 
   const isAuthenticated = !!user;
   const isAdmin = user?.isAdmin || false;
+  const isSuperAdmin = user?.isSuperAdmin || false;
   const isLoggedIn = isAuthenticated;
 
   useEffect(() => {
@@ -60,9 +59,27 @@ export const useAuthState = () => {
     
     checkCurrentSession();
     
+    // Process a session outside the auth callback to avoid the Supabase
+    // deadlock that happens when other supabase calls are awaited *inside*
+    // the onAuthStateChange handler (the auth lock is held during the
+    // callback, so any awaited supabase query blocks forever).
+    const processSession = async (session: any) => {
+      try {
+        setLoading(true);
+        const newUser = await handleUserSignIn(session);
+        if (newUser) {
+          setUser(newUser);
+          storeUserInLocalStorage(newUser);
+        }
+        return newUser;
+      } finally {
+        setLoading(false);
+      }
+    };
+
     // Set up Supabase auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         // Check if we're in password recovery flow by URL
         const isPasswordRecovery = window.location.hash.includes('type=recovery');
         
@@ -73,62 +90,25 @@ export const useAuthState = () => {
         }
         
         if (event === 'SIGNED_IN' && session) {
-          try {
-            setLoading(true);
-            const newUser = await handleUserSignIn(session);
-            if (newUser) {
-              setUser(newUser);
-              storeUserInLocalStorage(newUser);
-              
-              // Only show toast if this is an actual new login (not a session refresh)
-              if (isInitialAuth) {
+          // Defer to release the auth lock before making supabase queries.
+          setTimeout(() => {
+            processSession(session).then((newUser) => {
+              if (newUser && isInitialAuth) {
                 toast.success('Inicio de sesión exitoso');
                 localStorage.setItem('isInitialAuth', 'false');
+                setIsInitialAuth(false);
               }
-              // No longer initial auth after first sign-in
-              setIsInitialAuth(false);
-            }
-          } catch (err) {
-            // Error handling SIGNED_IN event
-          } finally {
-            setLoading(false);
-          }
+            });
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           storeUserInLocalStorage(null);
           toast.info('Sesión cerrada');
         } else if (event === 'USER_UPDATED' && session) {
-          // Check if we're in password recovery mode
-          if (isPasswordRecovery) {
-            // During password recovery, USER_UPDATED means password was changed
-            // We should now log the user in
-            try {
-              setLoading(true);
-              const newUser = await handleUserSignIn(session);
-              if (newUser) {
-                setUser(newUser);
-                storeUserInLocalStorage(newUser);
-              }
-            } catch (error) {
-              // Error updating user data
-            } finally {
-              setLoading(false);
-            }
-          } else {
-            // Regular user data update (not during password recovery)
-            try {
-              setLoading(true);
-              const newUser = await handleUserSignIn(session);
-              if (newUser) {
-                setUser(newUser);
-                storeUserInLocalStorage(newUser);
-              }
-            } catch (error) {
-              // Error updating user data
-            } finally {
-              setLoading(false);
-            }
-          }
+          // Defer to release the auth lock before making supabase queries.
+          setTimeout(() => {
+            processSession(session);
+          }, 0);
         }
       }
     );
@@ -185,6 +165,7 @@ export const useAuthState = () => {
     logout,
     isAuthenticated,
     isAdmin,
+    isSuperAdmin,
     isLoggedIn,
     loading
   };

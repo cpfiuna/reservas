@@ -205,9 +205,9 @@ export async function deleteReservation(id: string, reason?: string) {
           type: 'cancellation',
           recipient: reservation.email,
           reservation: {
-            ...reservation,
-            cancellationReason: cancellationReasonForEmail
-          }
+            ...reservation
+          },
+          reason: cancellationReasonForEmail
         });
       } catch (emailError) {
         // Don't throw if email fails
@@ -409,6 +409,7 @@ async function sendEmail(emailData: {
   type: string;
   recipient: string;
   reservation: any;
+  reason?: string;
   changes?: string;
 }) {
   try {

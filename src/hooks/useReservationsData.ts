@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useReservationDataFetching } from './reservation/useReservationDataFetching';
 import { useReservationMutations } from './reservation/useReservationMutations';
 
-export const useReservationsData = () => {
+export const useReservationsData = (venueId: string | null) => {
   // All useState hooks must be called before any other hooks
   const [dataInitialized, setDataInitialized] = useState(false);
   
@@ -13,13 +13,13 @@ export const useReservationsData = () => {
     isLoading,
     fetchReservations,
     fetchBlockedDates
-  } = useReservationDataFetching();
+  } = useReservationDataFetching(venueId);
 
   const {
     addReservation,
     deleteReservation,
     updateReservation
-  } = useReservationMutations(fetchReservations);
+  } = useReservationMutations(fetchReservations, venueId);
 
   // Track when data is initialized - useEffect must be called after all other hooks
   useEffect(() => {

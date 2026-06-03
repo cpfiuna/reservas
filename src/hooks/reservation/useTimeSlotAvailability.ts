@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { timeOptions } from '@/utils/timeUtils';
+import { useState, useEffect, useMemo } from 'react';
+import { generateTimeOptions, DEFAULT_HOUR_START, DEFAULT_HOUR_END } from '@/utils/timeUtils';
 import { isToday as isDateToday } from 'date-fns';
 import { Reservation } from '@/types/reservation';
 import { isSameDay } from '@/utils/timeUtils';
@@ -12,8 +12,16 @@ export const useTimeSlotAvailability = (
   fin: string,
   setFin: (value: string) => void,
   reservations: Reservation[],
-  isTimeSlotAvailable: (date: Date, startTime: string, endTime: string, excludeId?: string) => boolean
+  isTimeSlotAvailable: (date: Date, startTime: string, endTime: string, excludeId?: string) => boolean,
+  hourStart: number = DEFAULT_HOUR_START,
+  hourEnd: number = DEFAULT_HOUR_END
 ) => {
+  // Time options scoped to the active venue's opening hours.
+  const timeOptions = useMemo(
+    () => generateTimeOptions(hourStart, hourEnd),
+    [hourStart, hourEnd]
+  );
+
   // Available times based on reservations
   const [availableTimes, setAvailableTimes] = useState<string[]>(timeOptions);
   const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([]);
@@ -65,7 +73,7 @@ export const useTimeSlotAvailability = (
         updateAvailableEndTimes(inicio);
       }
     }
-  }, [fecha, reservations, isTimeSlotAvailable, inicio, setInicio, setFin]);
+  }, [fecha, reservations, isTimeSlotAvailable, inicio, setInicio, setFin, timeOptions]);
 
   // Auto-select end time based on start time
   useEffect(() => {
@@ -74,8 +82,8 @@ export const useTimeSlotAvailability = (
       let endHour = startHour + 1;
       let endMinute = startMinute;
       
-      if (endHour > 22 || (endHour === 22 && endMinute > 0)) {
-        endHour = 22;
+      if (endHour > hourEnd || (endHour === hourEnd && endMinute > 0)) {
+        endHour = hourEnd;
         endMinute = 0;
       }
       
@@ -87,7 +95,7 @@ export const useTimeSlotAvailability = (
         setFin(availableEndTimes[0]);
       }
     }
-  }, [inicio, availableEndTimes, fin, setFin]);
+  }, [inicio, availableEndTimes, fin, setFin, hourEnd]);
 
   // Update available end times based on start time
   const updateAvailableEndTimes = (startTime: string) => {

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
 export const useReservationUpdates = (reservations: any[], isLoading: boolean, dataInitialized: boolean) => {
@@ -15,17 +14,8 @@ export const useReservationUpdates = (reservations: any[], isLoading: boolean, d
     });
   }, [isLoading, dataInitialized, reservations.length]);
   
-  // Add effect to notify user of real-time updates
+  // Update previous count whenever reservations change (kept for future use).
   useEffect(() => {
-    // Check if this is an update (not initial load)
-    if (dataInitialized && prevReservationCount > 0 && prevReservationCount !== reservations.length) {
-      toast.info('El calendario se ha actualizado con nuevas reservas', {
-        id: 'calendar-update',
-        duration: 2000
-      });
-    }
-    
-    // Update previous count
     setPrevReservationCount(reservations.length);
   }, [reservations.length, dataInitialized, prevReservationCount]);
 

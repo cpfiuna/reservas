@@ -5,8 +5,10 @@ import { isBefore, startOfDay } from 'date-fns';
 import { BlockedDate } from '@/types/reservation';
 import { timeOptions } from '@/utils/timeUtils';
 import { toast } from 'sonner';
+import { useVenue } from '@/context/VenueContext';
 
 export const useBlockedDates = (isTimeSlotAvailable: (date: Date, startTime: string, endTime: string) => boolean) => {
+  const { venueId } = useVenue();
   // Blocked dates from the database
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,14 +30,16 @@ export const useBlockedDates = (isTimeSlotAvailable: (date: Date, startTime: str
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [venueId]);
 
   const fetchBlockedDates = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('blocked_dates')
         .select('fecha, start_time, end_time');
+      if (venueId) query = query.eq('venue_id', venueId);
+      const { data, error } = await query;
 
       if (error) {
         toast.error('Error al cargar fechas bloqueadas');

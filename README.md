@@ -1,22 +1,30 @@
-# 🏠 Sistema de Reservas del Quincho FIUNA
+# Sistema de Reservas FIUNA
 
-Sistema de reservas del quincho de la Facultad de Ingeniería (UNA), desarrollado por el [Club de Programación FIUNA](https://cpfiuna.io)
+Sistema de reservas de espacios de la Facultad de Ingeniería (UNA), desarrollado por el [Club de Programación FIUNA](https://cpfiuna.io)
 
-**🌐 Acceder**: [quincho.cpfiuna.io](https://quincho.cpfiuna.io)
+**🌐 Acceder**: [reservas.cpfiuna.io](https://reservas.cpfiuna.io)
 
 ---
 
 ## 📖 ¿Qué es este proyecto?
 
-Es una aplicación web que permite a estudiantes, docentes y personal de la FIUNA **reservar el quincho** de forma simple y organizada. Los administradores pueden gestionar las reservas, aprobarlas o rechazarlas, y bloquear fechas cuando sea necesario.
+Es una aplicación web que permite a estudiantes, docentes y personal de la FIUNA **reservar espacios** de forma simple y organizada. Los administradores pueden gestionar las reservas, aprobarlas o rechazarlas, y bloquear fechas cuando sea necesario.
+
+Actualmente gestiona dos espacios:
+
+- **Quincho FIUNA** - espacio al aire libre para reuniones, asados y eventos sociales.
+- **Polideportivo FIUNA** - cancha cubierta administrada por la Secretaría de Deportes del Centro de Estudiantes de Ingeniería.
+
 ## 🎯 ¿Por qué lo hicimos?
 
-La facultad nos pidió crear un **sistema de reservas moderno** similar al del [Polideportivo FIUNA](https://polideportivo-fiuna.netlify.app/), pero adaptado específicamente para el quincho. El objetivo era mejorar la gestión de reservas y hacerla más transparente y accesible para toda la comunidad.
+El quincho no tenía ningún sistema formal: las reservas se coordinaban de forma manual, lo que generaba confusión y superposición de fechas. Creamos esta plataforma para centralizar el proceso, hacerlo transparente y reducir el trabajo administrativo.
+
+El polideportivo, por su parte, fue incorporado a pedido de la **Secretaría de Deportes del CEI** (Centro de Estudiantes de Ingeniería), que necesitaba modernizar y reemplazar su sistema de reservas anterior, que ya no funcionaba bien. El objetivo fue darles una herramienta confiable, con notificaciones automáticas y gestión clara.
 
 ## ✨ ¿Qué hace?
 
 ### Para Usuarios:
-- 📅 Ver disponibilidad del quincho en un **calendario interactivo**
+- 📅 Ver disponibilidad del espacio en un **calendario interactivo**
 - ✍️ Hacer reservas seleccionando fecha, horario y cantidad de personas
 - 📧 Recibir **notificaciones por email** (confirmación, aprobación/rechazo, recordatorios)
 - 🔐 Iniciar sesión con tu cuenta de email
@@ -142,7 +150,7 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para más deta
 ## 👥 Contacto y Enlaces
 
 **Desarrollado por**: [Club de Programación FIUNA](https://cpfiuna.io)  
-**Comisionado por**: [Facultad de Ingeniería — Universidad Nacional de Asunción](https://ing.una.py)
+**Comisionado por**: [Facultad de Ingeniería - Universidad Nacional de Asunción](https://ing.una.py)
 
 - 🌐 **Aplicación**: [quincho.cpfiuna.io](https://quincho.cpfiuna.io)
 - 🏫 **Club**: [cpfiuna.io](https://cpfiuna.io)

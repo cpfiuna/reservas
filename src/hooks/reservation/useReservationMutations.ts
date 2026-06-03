@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { deleteReservation as libDeleteReservation } from '@/lib/supabase';
 import { Reservation } from '@/types/reservation';
 import { logger } from '@/utils/logger';
+import { useVenue } from '@/context/VenueContext';
 
-export const useReservationMutations = (fetchReservations: () => Promise<void>) => {
+export const useReservationMutations = (fetchReservations: () => Promise<void>, venueId: string | null) => {
+  const { currentVenue } = useVenue();
   const addReservation = async (newReservation: Omit<Reservation, 'id' | 'createdAt'>): Promise<{ reservation: Reservation; confirmationToken: string | null } | null> => {
     try {
       // Prevent booking on Sundays (client-side guard)
@@ -32,6 +34,12 @@ export const useReservationMutations = (fetchReservations: () => Promise<void>) 
         confirmed: false, // Starts unconfirmed, requires email confirmation
         token_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
       };
+
+      // Scope the reservation to the active venue. If venueId is not yet
+      // resolved, the DB column default (quincho) applies, preserving behavior.
+      if (venueId) {
+        insertData.venue_id = venueId;
+      }
       
       // Only add affiliation if it exists
       if (newReservation.affiliation) {
@@ -52,11 +60,12 @@ export const useReservationMutations = (fetchReservations: () => Promise<void>) 
       }
 
       if (data && data[0]) {
-        // Send confirmation email (fire-and-forget for instant response)
+        // Send confirmation email
         supabase.functions.invoke('send-email', {
           body: {
             type: 'confirm-reservation',
             recipient: data[0].email,
+            venueSlug: currentVenue?.slug ?? 'quincho',
             reservation: {
               id: data[0].id,
               responsable: data[0].responsable,
@@ -69,9 +78,19 @@ export const useReservationMutations = (fetchReservations: () => Promise<void>) 
             },
             confirmationToken: data[0].confirmation_token
           }
+        }).then(({ data: emailData, error: emailError }) => {
+          if (emailError) {
+            logger.error('send-email invocation error', emailError);
+            console.error('[EMAIL] invoke error:', emailError);
+          } else if (emailData && !emailData.success) {
+            logger.error('send-email returned failure', emailData);
+            console.error('[EMAIL] function error:', emailData.error);
+          } else {
+            console.log('[EMAIL] sent ok, id:', emailData?.emailId);
+          }
         }).catch((emailError) => {
           logger.error('Failed to send confirmation email', emailError);
-          // Don't fail the reservation if email fails
+          console.error('[EMAIL] catch:', emailError);
         });
 
         // When creating the reservation object, ensure we parse the date correctly

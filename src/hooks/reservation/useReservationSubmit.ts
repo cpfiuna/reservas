@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useReservationMutations } from './useReservationMutations';
 import { useReservations } from '@/context/ReservationContext';
+import { useVenue } from '@/context/VenueContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -21,10 +22,11 @@ export const useReservationSubmit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const reservationContext = useReservations();
+  const { venueId } = useVenue();
   const { addReservation } = useReservationMutations(async () => {
     // Placeholder function since the actual fetchReservations is not available
     // This will be called after a successful reservation
-  });
+  }, venueId);
 
   const submitReservation = async (
     data: ReservationSubmitData,

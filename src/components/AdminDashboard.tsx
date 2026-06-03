@@ -1,19 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
+import { CalendarPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useVenue } from '@/context/VenueContext';
 import BlockDateForm from './admin/BlockDateForm';
+import AdminReservationForm from './admin/AdminReservationForm';
 import ReservationsList from './admin/ReservationsList';
 import PendingReservationsList from './admin/PendingReservationsList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin, user } = useAuth();
+  const { venues, venueId, currentVenue, setVenueBySlug } = useVenue();
   const sb: any = supabase;
   const [reservations, setReservations] = useState<any[]>([]);
   const [pendingReservations, setPendingReservations] = useState<any[]>([]);
@@ -21,12 +27,22 @@ const AdminDashboard: React.FC = () => {
   const [blockedDates, setBlockedDates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('approved');
+  const [newReservationOpen, setNewReservationOpen] = useState(false);
+
+  // Venues this admin can manage: super_admin → all; otherwise → assigned venues only.
+  const adminVenues = useMemo(() => {
+    if (isSuperAdmin) return venues;
+    if (!user?.venues?.length) return venues.filter(v => v.slug === 'quincho');
+    return venues.filter(v => user.venues.includes(v.id));
+  }, [venues, isSuperAdmin, user]);
   
   useEffect(() => {
     if (!isAdmin) {
       navigate('/login');
       return;
     }
+
+    if (!venueId) return;
     
     fetchReservations();
     fetchCancelledReservations();
@@ -35,7 +51,7 @@ const AdminDashboard: React.FC = () => {
     
     // Subscribe to reservation changes
     const reservationsChannel = sb
-      .channel('reservations_changes')
+      .channel('admin_reservations_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'reservations' }, 
         () => {
@@ -48,7 +64,7 @@ const AdminDashboard: React.FC = () => {
       
     // Subscribe to blocked dates changes
     const blockedDatesChannel = sb
-      .channel('blocked_dates_changes')
+      .channel('admin_blocked_dates_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'blocked_dates' }, 
         () => {
@@ -61,7 +77,7 @@ const AdminDashboard: React.FC = () => {
       sb.removeChannel(reservationsChannel);
       sb.removeChannel(blockedDatesChannel);
     };
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, venueId]);
 
   const fetchReservations = async () => {
     try {
@@ -69,6 +85,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await sb
         .from('reservations')
         .select('*')
+        .eq('venue_id', venueId)
         .eq('status', 'approved')
         .not('status', 'eq', 'cancelled')
         .order('fecha', { ascending: false });
@@ -109,6 +126,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await sb
         .from('reservations')
         .select('*')
+        .eq('venue_id', venueId)
         .eq('status', 'cancelled')
         .order('fecha', { ascending: false });
 
@@ -145,6 +163,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await sb
         .from('reservations')
         .select('*')
+        .eq('venue_id', venueId)
         .eq('status', 'pending')
         .eq('confirmed', true)
         .order('fecha', { ascending: false });
@@ -182,6 +201,7 @@ const AdminDashboard: React.FC = () => {
       const { data, error } = await sb
         .from('blocked_dates')
         .select('*')
+        .eq('venue_id', venueId)
         .order('fecha', { ascending: false });
 
       if (error) throw error;
@@ -221,6 +241,7 @@ const AdminDashboard: React.FC = () => {
             body: {
               type: 'reservation-approved',
               recipient: reservation.email,
+              venueSlug: currentVenue?.slug ?? 'quincho',
               reservation: {
                 id: reservation.id,
                 responsable: reservation.responsable,
@@ -282,6 +303,7 @@ const AdminDashboard: React.FC = () => {
             body: {
               type: 'reservation-rejected',
               recipient: reservation.email,
+              venueSlug: currentVenue?.slug ?? 'quincho',
               reservation: {
                 id: reservation.id,
                 responsable: reservation.responsable,
@@ -314,12 +336,40 @@ const AdminDashboard: React.FC = () => {
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-2xl">Panel de Administración</CardTitle>
-          <CardDescription>Gestione las reservas y bloqueos del Quincho</CardDescription>
+          <CardDescription>
+            Gestione las reservas y bloqueos - {currentVenue?.name ?? 'Cargando...'}
+          </CardDescription>
+          {/* Venue switcher: only visible when admin manages more than one venue */}
+          {adminVenues.length > 1 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {adminVenues.map(v => (
+                <button
+                  key={v.id}
+                  onClick={() => setVenueBySlug(v.slug)}
+                  className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                    v.id === venueId
+                      ? 'bg-fiuna-red text-white border-fiuna-red'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-fiuna-red hover:text-fiuna-red'
+                  }`}
+                >
+                  {v.name}
+                </button>
+              ))}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Side - Calendar View and Block Controls */}
             <div className="space-y-4 col-span-1">
+              <Button
+                onClick={() => setNewReservationOpen(true)}
+                variant="outline"
+                className="w-full gap-2 border-fiuna-red text-fiuna-red hover:bg-fiuna-red hover:text-white"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Nueva Reserva
+              </Button>
               <BlockDateForm onBlockSuccess={fetchBlockedDates} />
             </div>
 
@@ -377,6 +427,22 @@ const AdminDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      <Dialog open={newReservationOpen} onOpenChange={setNewReservationOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nueva Reserva</DialogTitle>
+            <DialogDescription>
+              Crea una reserva directamente como aprobada. No se enviará confirmación por correo salvo que se ingrese un correo electrónico.
+            </DialogDescription>
+          </DialogHeader>
+          <AdminReservationForm
+            onCreated={() => {
+              setNewReservationOpen(false);
+              fetchReservations();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

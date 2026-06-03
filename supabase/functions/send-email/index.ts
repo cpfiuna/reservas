@@ -1,19 +1,65 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const allowedOrigin = Deno.env.get('CORS_ORIGIN') || Deno.env.get('SITE_URL') || '*';
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": allowedOrigin,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const FROM_EMAIL = "Quincho FIUNA <quincho-noreply@cpfiuna.io>"; // Resend test domain
+
+const ALLOWED_ORIGINS = new Set([
+  Deno.env.get('CORS_ORIGIN'),
+  Deno.env.get('SITE_URL'),
+  'https://quincho.cpfiuna.io',
+  'https://reservas.cpfiuna.io',
+  'http://localhost:5173',
+  'http://localhost:8080',
+].filter(Boolean) as string[]);
+
+function getCorsOrigin(req: Request): string {
+  const origin = req.headers.get('origin') ?? '';
+  return ALLOWED_ORIGINS.has(origin) ? origin : (ALLOWED_ORIGINS.values().next().value ?? '*');
+}
+
+// Per-venue sender. All senders live on the already-verified cpfiuna.io domain,
+// so adding a venue here needs ZERO new DNS. Falls back to quincho.
+const VENUE_FROM: Record<string, string> = {
+  quincho: "Quincho FIUNA <quincho-noreply@cpfiuna.io>",
+  polideportivo: "Polideportivo FIUNA <polideportivo-noreply@cpfiuna.io>",
+};
+const DEFAULT_VENUE = { slug: 'quincho', name: 'Quincho FIUNA' };
+
+// Resolve the venue for a reservation (self-contained: callers don't need to
+// pass venue info). Any failure falls back to the quincho defaults so emails
+// are never blocked by a lookup error.
+async function resolveVenue(reservationId: string): Promise<{ slug: string; name: string }> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceKey || !reservationId) return DEFAULT_VENUE;
+
+    const supabase = createClient(supabaseUrl, serviceKey);
+    const { data: resv } = await supabase
+      .from('reservations')
+      .select('venue_id')
+      .eq('id', reservationId)
+      .maybeSingle();
+    if (!resv?.venue_id) return DEFAULT_VENUE;
+
+    const { data: venue } = await supabase
+      .from('venues')
+      .select('slug, name')
+      .eq('id', resv.venue_id)
+      .maybeSingle();
+    if (!venue?.slug) return DEFAULT_VENUE;
+
+    return { slug: venue.slug, name: venue.name ?? DEFAULT_VENUE.name };
+  } catch (_err) {
+    return DEFAULT_VENUE;
+  }
+}
 
 interface EmailRequest {
   type: 'confirm-reservation' | 'reservation-approved' | 'reservation-cancelled' | 'reservation-rejected' | 'reservation-reminder';
   recipient: string;
+  venueSlug?: string; // Optional: if provided, skips DB lookup
   reservation: {
     id: string;
     responsable: string;
@@ -58,6 +104,11 @@ function replaceTemplateVariables(template: string, data: Record<string, string>
 }
 
 serve(async (req: Request) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": getCorsOrigin(req),
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -65,8 +116,15 @@ serve(async (req: Request) => {
 
   try {
     const emailData: EmailRequest = await req.json();
-    const { type, recipient, reservation, reason, confirmationToken } = emailData;
-    
+    const { type, recipient, venueSlug, reservation, reason, confirmationToken } = emailData;
+
+    // Use venueSlug from payload if provided; otherwise fall back to DB lookup.
+    const venue = venueSlug && VENUE_FROM[venueSlug]
+      ? { slug: venueSlug, name: (VENUE_FROM[venueSlug].match(/^([^<]+)/)?.[1].trim() ?? DEFAULT_VENUE.name) }
+      : await resolveVenue(reservation.id);
+    const fromEmail = VENUE_FROM[venue.slug] ?? VENUE_FROM.quincho;
+    const venueName = venue.name;
+
     let templateName = '';
     let subject = '';
     let templateVars: Record<string, string> = {
@@ -76,36 +134,37 @@ serve(async (req: Request) => {
       StartTime: reservation.inicio,
       EndTime: reservation.fin,
       Reason: reservation.motivo,
-      Personas: reservation.personas.toString(),
+      Personas: (reservation.personas ?? '').toString(),
+      VenueName: venueName,
     };
     
     switch (type) {
       case 'confirm-reservation':
         templateName = 'confirm-reservation';
-        subject = 'Confirma tu solicitud de reserva - Quincho FIUNA';
+        subject = `Confirma tu solicitud de reserva - ${venueName}`;
         templateVars.ConfirmationURL = `${Deno.env.get('SITE_URL')}/confirmar-reserva?token=${confirmationToken}`;
         break;
       
       case 'reservation-approved':
         templateName = 'reservation-approved';
-        subject = '¡Tu reserva ha sido aprobada! - Quincho FIUNA';
+        subject = `¡Tu reserva ha sido aprobada! - ${venueName}`;
         break;
       
       case 'reservation-cancelled':
         templateName = 'reservation-cancelled';
-        subject = 'Tu reserva ha sido cancelada - Quincho FIUNA';
+        subject = `Tu reserva ha sido cancelada - ${venueName}`;
         templateVars.CancellationReason = reason || 'No especificado';
         break;
       
       case 'reservation-rejected':
         templateName = 'reservation-rejected';
-        subject = 'Solicitud no aprobada - Quincho FIUNA';
+        subject = `Solicitud no aprobada - ${venueName}`;
         templateVars.RejectionReason = reason || 'No especificado';
         break;
       
       case 'reservation-reminder':
         templateName = 'reservation-reminder';
-        subject = '🔔 Tu reserva comienza en 1 hora - Quincho FIUNA';
+        subject = `🔔 Tu reserva comienza en 1 hora - ${venueName}`;
         break;
     }
     
@@ -131,7 +190,7 @@ serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: FROM_EMAIL,
+            from: fromEmail,
             to: recipient,
             subject: subject,
             html: htmlContent,

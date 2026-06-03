@@ -2,6 +2,9 @@
 export interface User {
   email: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  /** Venue ids this admin is assigned to manage (empty for non-admins). */
+  venues: string[];
 }
 
 export interface AuthContextType {
@@ -10,6 +13,7 @@ export interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isLoggedIn: boolean;
   loading: boolean;
 }

@@ -1,5 +1,7 @@
 
 import { useReservations } from '@/context/ReservationContext';
+import { useVenue } from '@/context/VenueContext';
+import { parseHour, DEFAULT_HOUR_START, DEFAULT_HOUR_END } from '@/utils/timeUtils';
 import { useReservationFormState } from './reservation/useReservationFormState';
 import { useTimeSlotAvailability } from './reservation/useTimeSlotAvailability';
 import { useBlockedDates } from './reservation/useBlockedDates';
@@ -12,6 +14,11 @@ export const useReservationForm = (
   initialEndTime?: string | null
 ) => {
   const { reservations, isTimeSlotAvailable } = useReservations();
+  const { currentVenue } = useVenue();
+
+  // Opening hours for the active venue (falls back to defaults until resolved).
+  const hourStart = parseHour(currentVenue?.hours_start, DEFAULT_HOUR_START);
+  const hourEnd = parseHour(currentVenue?.hours_end, DEFAULT_HOUR_END);
   
   // Get form state and validation
   const { formState, validateForm } = useReservationFormState();
@@ -38,7 +45,9 @@ export const useReservationForm = (
     fin,
     setFin,
     reservations,
-    isTimeSlotAvailable
+    isTimeSlotAvailable,
+    hourStart,
+    hourEnd
   );
   
   // Get blocked dates

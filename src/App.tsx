@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ReservationProvider } from "@/context/ReservationContext";
+import { VenueProvider } from "@/context/VenueContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Index from "./pages/Index";
 import CalendarPage from "./pages/CalendarPage";
@@ -175,7 +176,7 @@ const AppRoutes = () => {
       <RouteHandler />
       <InitialSessionCheck />
       <Routes>
-        <Route path="/" element={<Navigate to="/calendario" replace />} />
+        <Route path="/" element={<Index />} />
         <Route path="/calendario" element={<CalendarPage />} />
         <Route path="/nueva-reserva" element={<ReservationPage />} />
         <Route path="/confirmar-reserva" element={<ConfirmReservationPage />} />
@@ -206,11 +207,13 @@ const App = () => (
       />
       <BrowserRouter>
         <AuthProvider>
-          <ReservationProvider>
-            <MotionConfig reducedMotion="user">
-              <AppRoutes />
-            </MotionConfig>
-          </ReservationProvider>
+          <VenueProvider>
+            <ReservationProvider>
+              <MotionConfig reducedMotion="user">
+                <AppRoutes />
+              </MotionConfig>
+            </ReservationProvider>
+          </VenueProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

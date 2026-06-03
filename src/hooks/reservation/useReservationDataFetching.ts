@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import { Reservation, BlockedDate } from '@/types/reservation';
 
-export const useReservationDataFetching = () => {
+export const useReservationDataFetching = (venueId: string | null) => {
   // All state declarations first
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
@@ -14,6 +14,10 @@ export const useReservationDataFetching = () => {
   const mountedRef = useRef(true);
   const fetchAttemptsRef = useRef(0);
   const maxRetries = 3;
+
+  // Keep the latest venueId available to fetchers without re-creating them.
+  const venueIdRef = useRef<string | null>(venueId);
+  venueIdRef.current = venueId;
 
   // Helper for safe state updates
   const safeUpdate = (callback: () => void) => {
@@ -25,11 +29,14 @@ export const useReservationDataFetching = () => {
   // Define fetching functions before using them in useEffect
   const fetchReservations = async (): Promise<void> => {
     if (!mountedRef.current) return;
+    const activeVenueId = venueIdRef.current;
+    if (!activeVenueId) return;
     
     try {
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
+        .eq('venue_id', activeVenueId)
         .not('status', 'in', '(cancelled,rejected)');
 
       if (error) {
@@ -61,7 +68,8 @@ export const useReservationDataFetching = () => {
             admin_notes: item.admin_notes,
             affiliation: item.affiliation,
             updated_at: item.updated_at ? new Date(item.updated_at) : undefined,
-            updated_by: item.updated_by || undefined
+            updated_by: item.updated_by || undefined,
+            venue_id: item.venue_id
           };
         });
         
@@ -78,11 +86,14 @@ export const useReservationDataFetching = () => {
 
   const fetchBlockedDates = async (): Promise<void> => {
     if (!mountedRef.current) return;
+    const activeVenueId = venueIdRef.current;
+    if (!activeVenueId) return;
     
     try {
       const { data, error } = await supabase
         .from('blocked_dates')
-        .select('*');
+        .select('*')
+        .eq('venue_id', activeVenueId);
 
       if (error) {
         return;
@@ -103,7 +114,8 @@ export const useReservationDataFetching = () => {
             fecha: dateObj,
             motivo: item.motivo,
             created_at: new Date(item.created_at),
-            created_by: item.created_by
+            created_by: item.created_by,
+            venue_id: item.venue_id
           };
         });
         
@@ -119,7 +131,14 @@ export const useReservationDataFetching = () => {
   // useEffect comes last
   useEffect(() => {
     mountedRef.current = true;
-    
+
+    // Wait until a venue has been resolved before fetching anything.
+    if (!venueId) {
+      return () => {
+        mountedRef.current = false;
+      };
+    }
+
     // Fetch initial reservations and blocked dates
     const initialize = async () => {
 
@@ -155,38 +174,22 @@ export const useReservationDataFetching = () => {
     
     initialize();
 
-    // Subscribe to realtime changes for reservations
-    const reservationsChannel = supabase
-      .channel('reservations_realtime')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'reservations' }, 
-        (payload) => {
-          fetchReservations();
-        }
-      )
-      .subscribe((status) => {
-        // Reservations channel status changed
-      });
+    // Refetch when the user returns to this tab instead of maintaining a
+    // persistent anon realtime channel (reduces Supabase free-plan usage).
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchReservations();
+        fetchBlockedDates();
+      }
+    };
 
-    // Subscribe to realtime changes for blocked_dates
-    const blockedDatesChannel = supabase
-      .channel('blocked_dates_realtime')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'blocked_dates' }, 
-        (payload) => {
-          fetchBlockedDates();
-        }
-      )
-      .subscribe((status) => {
-        // Blocked dates channel status changed
-      });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(reservationsChannel);
-      supabase.removeChannel(blockedDatesChannel);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [venueId]);
 
   return {
     reservations,

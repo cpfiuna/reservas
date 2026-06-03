@@ -75,7 +75,8 @@ export default function ConfirmReservationPage() {
   }, [token, navigate]);
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // local time, avoids UTC offset shifting the date
     return date.toLocaleDateString('es-PY', {
       weekday: 'long',
       year: 'numeric',

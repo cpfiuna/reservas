@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -6,30 +6,26 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarX } from 'lucide-react';
-
-// Generate time options from 7:00 to 22:00
-const timeOptions = (() => {
-  const options = [];
-  for (let hour = 7; hour <= 22; hour++) {
-    const hourString = hour.toString().padStart(2, '0');
-    options.push(`${hourString}:00`);
-    if (hour < 22) {
-      options.push(`${hourString}:30`);
-    }
-  }
-  return options;
-})();
+import { useVenue } from '@/context/VenueContext';
+import { generateTimeOptions, parseHour, DEFAULT_HOUR_START, DEFAULT_HOUR_END } from '@/utils/timeUtils';
 
 interface BlockDateFormProps {
   onBlockSuccess: () => void;
 }
 
 const BlockDateForm: React.FC<BlockDateFormProps> = ({ onBlockSuccess }) => {
+  const { venueId, currentVenue } = useVenue();
+  // Opening hours scoped to active venue.
+  const timeOptions = useMemo(() => {
+    const start = parseHour(currentVenue?.hours_start, DEFAULT_HOUR_START);
+    const end = parseHour(currentVenue?.hours_end, DEFAULT_HOUR_END);
+    return generateTimeOptions(start, end);
+  }, [currentVenue]);
+
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [blockStartTime, setBlockStartTime] = useState('');
@@ -76,12 +72,13 @@ const BlockDateForm: React.FC<BlockDateFormProps> = ({ onBlockSuccess }) => {
       
       // Create a blocked date entry for each date in the range
       for (const date of datesToBlock) {
-        const blockData = {
+        const blockData: Record<string, string> = {
           fecha: format(date, 'yyyy-MM-dd'),
           motivo: blockReason || 'Bloqueo administrativo',
           start_time: blockStartTime,
           end_time: blockEndTime
         };
+        if (venueId) blockData.venue_id = venueId;
 
         const { error } = await supabase
           .from('blocked_dates')
@@ -112,7 +109,7 @@ const BlockDateForm: React.FC<BlockDateFormProps> = ({ onBlockSuccess }) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="pr-4">
+        <div className="pr-1">
           <div className="space-y-4">
             <div className="flex justify-center mb-4">
               <Calendar
@@ -193,7 +190,7 @@ const BlockDateForm: React.FC<BlockDateFormProps> = ({ onBlockSuccess }) => {
               </Button>
             </div>
           </div>
-        </ScrollArea>
+        </div>
       </CardContent>
     </Card>
   );

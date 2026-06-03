@@ -26,42 +26,29 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       transition={{ duration: 0.8 }}
     >
       <div className="text-center">
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="mb-4"
-        >
-          <img 
-            src="https://www.ing.una.py/sites/default/files/fiuna_logo_color.png" 
-            alt="FIUNA Logo" 
-            className="h-24 mx-auto" 
-          />
-        </motion.div>
-        
         <motion.h1
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
           className="text-2xl font-bold text-fiuna-red mb-2"
         >
-          Sistema de Reserva del Quincho
+          Sistema de Reservas
         </motion.h1>
-        
+
         <motion.p
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
           className="text-sm text-gray-500"
         >
-          Facultad de Ingeniería - Universidad Nacional de Asunción
+          Club de Programación FIUNA
         </motion.p>
         
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="mt-6"
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-8"
         >
           <div className="w-12 h-1 bg-fiuna-red mx-auto rounded-full animate-pulse"></div>
         </motion.div>

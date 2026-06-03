@@ -1,4 +1,8 @@
 project_id = "uhthypiomvxwnayopagt"
 
+[functions.send-email]
+# HTML templates are read at runtime via Deno.readTextFile and must be bundled explicitly.
+static_files = [ "./functions/send-email/*.html" ]
+
 [functions.cleanup-unconfirmed-reservations]
 # cron = "0 0 * * *" # runs daily at 00:00 UTC (configure via Supabase Dashboard)

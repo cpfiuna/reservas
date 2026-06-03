@@ -1,12 +1,26 @@
 
-// Helper function to generate time options
-export const generateTimeOptions = () => {
+// Default opening hours used when a venue's hours are not (yet) known.
+export const DEFAULT_HOUR_START = 8;
+export const DEFAULT_HOUR_END = 22;
+
+// Parse a "HH:MM" / "HH:MM:SS" string into a whole hour. Falls back to the
+// provided default if the value is missing or malformed.
+export const parseHour = (value: string | null | undefined, fallback: number): number => {
+  if (!value) return fallback;
+  const hour = parseInt(value.split(':')[0], 10);
+  return Number.isFinite(hour) ? hour : fallback;
+};
+
+// Helper function to generate time options for a given opening-hours range.
+export const generateTimeOptions = (
+  startHour: number = DEFAULT_HOUR_START,
+  endHour: number = DEFAULT_HOUR_END
+) => {
   const options = [];
-  // Start time from 8:00 (changing from 7:00)
-  for (let hour = 8; hour <= 22; hour++) {
+  for (let hour = startHour; hour <= endHour; hour++) {
     const hourString = hour.toString().padStart(2, '0');
     options.push(`${hourString}:00`);
-    if (hour < 22) {
+    if (hour < endHour) {
       options.push(`${hourString}:30`);
     }
   }

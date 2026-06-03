@@ -59,6 +59,26 @@ export const fetchUserProfile = async (userId: string, accessToken?: string): Pr
   }
 };
 
+// Function to fetch an admin's venue assignments + super-admin flag.
+// Returns safe defaults on any error so it never blocks sign-in.
+export const fetchUserVenues = async (
+  userId: string
+): Promise<{ isSuperAdmin: boolean; venues: string[] }> => {
+  try {
+    const [{ data: profile }, { data: assignments }] = await Promise.all([
+      supabase.from('profiles').select('is_super_admin').eq('id', userId).maybeSingle(),
+      supabase.from('admin_venues').select('venue_id').eq('admin_id', userId),
+    ]);
+
+    return {
+      isSuperAdmin: !!profile?.is_super_admin,
+      venues: (assignments ?? []).map((row: { venue_id: string }) => row.venue_id),
+    };
+  } catch {
+    return { isSuperAdmin: false, venues: [] };
+  }
+};
+
 // Function to handle user sign-in
 export const handleUserSignIn = async (session: any): Promise<User | null> => {
   if (!session) return null;
@@ -67,19 +87,20 @@ export const handleUserSignIn = async (session: any): Promise<User | null> => {
     const userId = session.user.id;
     const userEmail = session.user.email || '';
     
-    // First check if the user already exists in local storage
-    const storedUser = getUserFromLocalStorage();
-    if (storedUser && storedUser.email === userEmail) {
-      return storedUser;
-    }
-    
-    // Always verify admin status from the profiles table (server-side source of truth)
-    const isAdmin = await fetchUserProfile(userId);
+    // Always verify admin status and venue assignments from the server.
+    // Do NOT use the localStorage cache here - venue assignments can change
+    // without a new sign-in (e.g. admin_venues rows added by a super-admin).
+    const [isAdmin, { isSuperAdmin, venues }] = await Promise.all([
+      fetchUserProfile(userId),
+      fetchUserVenues(userId),
+    ]);
     
     // Create user object
     const user: User = {
       email: userEmail,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      isSuperAdmin,
+      venues,
     };
     
     return user;

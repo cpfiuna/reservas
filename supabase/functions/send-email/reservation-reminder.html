@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Quincho FIUNA - Recordatorio de reserva</title>
+<title>{{.VenueName}} - Recordatorio de reserva</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 </style>
@@ -17,7 +17,7 @@
         <!-- Header -->
         <tr>
           <td style="background-color: #E30613; padding: 30px 40px; border-radius: 8px 8px 0 0; text-align: center;">
-            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Quincho FIUNA</h1>
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">{{.VenueName}}</h1>
           </td>
         </tr>
         
@@ -36,7 +36,7 @@
             </div>
             
             <p style="margin: 0 0 30px 0; color: #555555; font-size: 16px; line-height: 1.6;">
-              Este es un recordatorio amistoso de que tu reserva del Quincho FIUNA está próxima a comenzar.
+              Este es un recordatorio amistoso de que tu reserva del {{.VenueName}} está próxima a comenzar.
             </p>
             
             <div style="margin: 0 0 30px 0; padding: 20px; background-color: #f0f0f0; border-radius: 6px;">
@@ -71,7 +71,7 @@
                 <li>Llega puntual</li>
                 <li>Respeta el horario de finalización</li>
                 <li>Mantén el espacio limpio y ordenado</li>
-                <li>Deja el quincho en las mismas condiciones en que lo encontraste</li>
+                <li>Deja el lugar en las mismas condiciones en que lo encontraste</li>
               </ul>
             </div>
           </td>
@@ -81,7 +81,7 @@
         <tr>
           <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e5e7eb;">
             <p style="margin: 0 0 10px 0; color: #999999; font-size: 13px;">
-              Sistema de Reservas - Quincho FIUNA
+              Sistema de Reservas - {{.VenueName}}
             </p>
             <p style="margin: 0; color: #999999; font-size: 13px;">
               Facultad de Ingeniería - Universidad Nacional de Asunción

@@ -17,6 +17,7 @@ export interface Reservation {
   affiliation?: string;
   updated_at?: Date;
   updated_by?: string;
+  venue_id?: string;
 }
 
 export interface BlockedDate {
@@ -27,6 +28,7 @@ export interface BlockedDate {
   created_by: string | null;
   start_time?: string;
   end_time?: string;
+  venue_id?: string;
 }
 
 export interface ReservationContextType {
